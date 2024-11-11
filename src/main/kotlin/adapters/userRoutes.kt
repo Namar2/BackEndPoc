@@ -8,6 +8,7 @@ import io.ktor.http.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import jobs.UserActionJobHandler
 import org.invendiv.domain.model.NewUser
 import java.io.File
 
@@ -15,6 +16,7 @@ fun Route.userRoutes(
     addUserUseCase: AddUserUseCase,
     fetchUsersUseCase: FetchUsersUseCase
 ) {
+    val userActionJobHandler = UserActionJobHandler()
 
     // Root route to display README.md content
     get("/") {
@@ -34,13 +36,23 @@ fun Route.userRoutes(
         }
     }
 
-    post("/addUser") {
+    post("/api/add-user") {
         val newUser = call.receive<NewUser>()
         val createdUser = addUserUseCase.execute(newUser)
-        call.respond(HttpStatusCode.Created, createdUser)
+        createdUser?.let {
+            // Trigger the background job to log this action
+            userActionJobHandler.startLogUserActionJob(it.id, "User added")
+
+            // Respond with 201 Created and return the created user data
+            call.respond(HttpStatusCode.Created, it)
+            return@post
+        }
+
+        // If user creation failed, respond with 400 Bad Request
+        call.respond(HttpStatusCode.BadRequest, "Bad request 400")
     }
 
-    get("/getUsers") {
+    get("api/get-users") {
         val users = fetchUsersUseCase.execute()
         call.respond(users)
     }

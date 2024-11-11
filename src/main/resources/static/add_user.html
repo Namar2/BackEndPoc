@@ -106,7 +106,7 @@
 
         try {
             // Send a POST request to add the user
-            const response = await fetch('http://localhost:8080/addUser', {
+            const response = await fetch('http://localhost:8080/api/add-user', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -118,7 +118,7 @@
             if (response.ok) {
                 const createdUser = await response.json();
                 console.log("User added successfully:", createdUser); // Debugging output
-                window.location.href = "http://localhost:8080/getUsers";
+                window.location.href = "http://localhost:8080/api/get-users";
             } else {
                 const errorText = await response.text(); // Get response error message
                 console.error("Failed to add user:", errorText);

@@ -11,7 +11,7 @@ import org.jetbrains.exposed.sql.transactions.transaction
 
 class UserRepositoryImpl : UserRepository {
 
-    override suspend fun addUser(user: NewUser): User {
+    override suspend fun addUser(user: NewUser): User? {
         var userId: Int? = null
         transaction {
             userId = Users.insert {
@@ -19,7 +19,7 @@ class UserRepositoryImpl : UserRepository {
                 it[email] = user.email
             } get Users.id
         }
-        return User(id = userId!!, name = user.name, email = user.email)
+        return userId?.let { User(id = it, name = user.name, email = user.email) }
     }
 
     override suspend fun fetchAllUsers(): List<User> = transaction {

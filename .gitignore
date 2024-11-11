@@ -1,6 +1,6 @@
 
-.gradle/8.8/executionHistory/executionHistory.lock
-.gradle/8.8/fileHashes/fileHashes.bin
-.gradle/8.8/fileHashes/fileHashes.lock
-.gradle/buildOutputCleanup/buildOutputCleanup.lock
-.gradle/file-system.probe
+
+
+.gradle/
+build/
+*.class

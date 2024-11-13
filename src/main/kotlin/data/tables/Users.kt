@@ -1,4 +1,4 @@
-package org.invendiv.frameworks.db.tables
+package org.invendiv.data.tables
 
 import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.and

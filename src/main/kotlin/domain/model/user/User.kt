@@ -1,4 +1,4 @@
-package org.invendiv.domain.model
+package org.invendiv.domain.model.user
 
 import kotlinx.serialization.Serializable
 

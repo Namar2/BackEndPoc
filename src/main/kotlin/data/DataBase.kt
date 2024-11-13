@@ -1,6 +1,6 @@
-package org.invendiv.frameworks.db
+package org.invendiv.data
 
-import org.invendiv.frameworks.db.tables.Users
+import org.invendiv.data.tables.Users
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.transactions.transaction

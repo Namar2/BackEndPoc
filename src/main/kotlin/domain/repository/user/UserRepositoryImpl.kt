@@ -1,9 +1,8 @@
-package adapters
+package org.invendiv.domain.repository.user
 
-import domain.repository.UserRepository
-import org.invendiv.frameworks.db.tables.Users
-import org.invendiv.domain.model.NewUser
-import org.invendiv.domain.model.User
+import org.invendiv.data.tables.Users
+import org.invendiv.domain.model.user.NewUser
+import org.invendiv.domain.model.user.User
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.selectAll

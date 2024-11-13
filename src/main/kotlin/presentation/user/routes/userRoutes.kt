@@ -1,22 +1,26 @@
-package adapters
+package org.invendiv.presentation.user.routes
 
-import application.useCase.AddUserUseCase
-import application.useCase.FetchUsersUseCase
 import com.vladsch.flexmark.html.HtmlRenderer
 import com.vladsch.flexmark.parser.Parser
+import org.invendiv.domain.useCase.user.AddUserUseCase
+import org.invendiv.domain.useCase.user.FetchUsersUseCase
 import io.ktor.http.*
+import io.ktor.server.http.content.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import jobs.UserActionJobHandler
-import org.invendiv.domain.model.NewUser
+import org.invendiv.jobs.user.UserActionJobHandler
+import org.invendiv.domain.model.user.NewUser
 import java.io.File
+
+val userActionJobHandler = UserActionJobHandler()
 
 fun Route.userRoutes(
     addUserUseCase: AddUserUseCase,
     fetchUsersUseCase: FetchUsersUseCase
 ) {
-    val userActionJobHandler = UserActionJobHandler()
+
+    staticResources("/", "static")
 
     // Root route to display README.md content
     get("/") {

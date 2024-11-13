@@ -1,23 +1,20 @@
 package org.invendiv
 
-import adapters.UserRepositoryImpl
-import adapters.userRoutes
-import application.useCase.AddUserUseCase
-import application.useCase.FetchUsersUseCase
+import org.invendiv.domain.repository.user.UserRepositoryImpl
+import org.invendiv.presentation.user.routes.userRoutes
+import org.invendiv.domain.useCase.user.AddUserUseCase
+import org.invendiv.domain.useCase.user.FetchUsersUseCase
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
-import io.ktor.server.http.content.*
 import io.ktor.server.netty.*
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.plugins.cors.routing.*
 import io.ktor.server.routing.*
-import jobs.UserCountJob
-import kotlinx.coroutines.*
-import org.invendiv.frameworks.db.initDatabase
-import org.invendiv.frameworks.db.setupDatabase
-import org.slf4j.LoggerFactory
+import org.invendiv.jobs.user.UserCountJob
+import org.invendiv.data.initDatabase
+import org.invendiv.data.setupDatabase
 
 /**
  * Main function to start the embedded Ktor server on port 8080.
@@ -25,7 +22,7 @@ import org.slf4j.LoggerFactory
  * - Calls the module function to configure the application with routing and database setup.
  */
 fun main() {
-    embeddedServer(Netty, port = 8080, module = Application::module).start(wait = true)
+    embeddedServer(factory = Netty, port = 2303, module = Application::module).start(wait = true)
 }
 
 /**
@@ -60,12 +57,7 @@ fun Application.module() {
 
 
 
-
     routing {
-        static("/static") {
-            resources("static")
-        }
-
         userRoutes(addUserUseCase, fetchUsersUseCase)
     }
 }

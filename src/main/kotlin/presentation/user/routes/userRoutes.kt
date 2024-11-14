@@ -5,12 +5,14 @@ import com.vladsch.flexmark.parser.Parser
 import org.invendiv.domain.useCase.user.AddUserUseCase
 import org.invendiv.domain.useCase.user.FetchUsersUseCase
 import io.ktor.http.*
+import io.ktor.server.auth.*
 import io.ktor.server.http.content.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import org.invendiv.jobs.user.UserActionJobHandler
 import org.invendiv.domain.model.user.NewUser
+import org.invendiv.presentation.auth.AuthModule
 import java.io.File
 
 val userActionJobHandler = UserActionJobHandler()
@@ -20,9 +22,7 @@ fun Route.userRoutes(
     fetchUsersUseCase: FetchUsersUseCase
 ) {
 
-    staticResources("/", "static")
-
-    // Root route to display README.md content
+    // Publicly accessible root route to display README.md content
     get("/") {
         val readmeFile = File("README.md")
         if (readmeFile.exists()) {
@@ -40,24 +40,27 @@ fun Route.userRoutes(
         }
     }
 
-    post("/api/add-user") {
-        val newUser = call.receive<NewUser>()
-        val createdUser = addUserUseCase.execute(newUser)
-        createdUser?.let {
-            // Trigger the background job to log this action
-            userActionJobHandler.startLogUserActionJob(it.id, "User added")
+    // Protected routes that require authentication
+    authenticate(AuthModule.jwtConfig) {
+        post("/api/add-user") {
+            val newUser = call.receive<NewUser>()
+            val createdUser = addUserUseCase.execute(newUser)
+            createdUser?.let {
+                // Trigger the background job to log this action
+                userActionJobHandler.startLogUserActionJob(it.id, "User added")
 
-            // Respond with 201 Created and return the created user data
-            call.respond(HttpStatusCode.Created, it)
-            return@post
+                // Respond with 201 Created and return the created user data
+                call.respond(HttpStatusCode.Created, it)
+                return@post
+            }
+
+            // If user creation failed, respond with 400 Bad Request
+            call.respond(HttpStatusCode.BadRequest, "Bad request 400")
         }
 
-        // If user creation failed, respond with 400 Bad Request
-        call.respond(HttpStatusCode.BadRequest, "Bad request 400")
-    }
-
-    get("api/get-users") {
-        val users = fetchUsersUseCase.execute()
-        call.respond(users)
+        get("/api/get-users") {
+            val users = fetchUsersUseCase.execute()
+            call.respond(users)
+        }
     }
 }

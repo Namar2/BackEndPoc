@@ -1,0 +1,142 @@
+<!-- login.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login</title>
+  <style>
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #f0f2f5;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+    }
+
+    .form-container {
+        background-color: #ffffff;
+        padding: 2rem;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        max-width: 400px;
+        width: 100%;
+        text-align: center;
+    }
+
+    h1 {
+        color: #333;
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+    }
+
+    label {
+        font-weight: bold;
+        color: #555;
+        display: block;
+        margin-top: 1rem;
+        text-align: left;
+    }
+
+    input[type="text"],
+    input[type="password"] {
+        width: 100%;
+        padding: 10px;
+        margin-top: 0.5rem;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 1rem;
+    }
+
+    button[type="submit"] {
+        margin-top: 1.5rem;
+        background-color: #4CAF50;
+        color: #ffffff;
+        border: none;
+        padding: 10px;
+        font-size: 1rem;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+
+    button[type="submit"]:hover {
+        background-color: #45a049;
+    }
+
+    #tokenDisplay {
+        margin-top: 1.5rem;
+        padding: 1rem;
+        background-color: #e9ecef;
+        border-radius: 4px;
+        word-break: break-all;
+        color: #333;
+        font-size: 0.9rem;
+        text-align: left;
+    }
+  </style>
+</head>
+<body>
+<div class="form-container">
+  <h1>Login</h1>
+  <form id="loginForm">
+    <label for="username">Username</label>
+    <input type="text" id="username" required placeholder="Enter username">
+
+    <label for="password">Password</label>
+    <input type="password" id="password" required placeholder="Enter password">
+
+    <button type="submit">Login</button>
+  </form>
+
+  <!-- Section to display the token after login -->
+  <div id="tokenDisplay" style="display: none;">
+    <strong>Your Token:</strong>
+    <p id="tokenText"></p>
+  </div>
+</div>
+
+<script>
+  document.getElementById('loginForm').addEventListener('submit', async (event) => {
+      event.preventDefault();
+
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+
+      try {
+          const response = await fetch('http://localhost:2303/api/login', {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ username, password })
+          });
+
+          if (response.ok) {
+              const data = await response.json();
+              const token = data.token;
+
+              // Store the token in localStorage for future requests
+              localStorage.setItem('jwtToken', token);
+
+              // Display the token on the screen
+              document.getElementById('tokenText').textContent = token;
+              document.getElementById('tokenDisplay').style.display = 'block';
+
+              alert("Login successful!");
+              // Optional: Redirect to add user page after a delay
+              setTimeout(() => window.location.href = "/add_user.html", 5000);
+
+          } else {
+              alert("Login failed. Please check your credentials.");
+          }
+      } catch (error) {
+          console.error("Error logging in:", error);
+          alert("An error occurred. Please try again.");
+      }
+  });
+</script>
+</body>
+</html>

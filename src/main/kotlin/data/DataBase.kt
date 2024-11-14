@@ -33,6 +33,7 @@ fun initDatabase() {
  * Uncomment it if you want to insert initial data into the Users table when setting up the database.
  */
 fun setupDatabase() {
+    initDatabase()
     transaction {
         // Create the Users table if it doesn't exist
         SchemaUtils.create(Users)

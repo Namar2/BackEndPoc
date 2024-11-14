@@ -1,20 +1,22 @@
 package org.invendiv
 
-import org.invendiv.domain.repository.user.UserRepositoryImpl
-import org.invendiv.presentation.user.routes.userRoutes
-import org.invendiv.domain.useCase.user.AddUserUseCase
-import org.invendiv.domain.useCase.user.FetchUsersUseCase
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
+import io.ktor.server.http.content.*
 import io.ktor.server.netty.*
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.plugins.cors.routing.*
 import io.ktor.server.routing.*
-import org.invendiv.jobs.user.UserCountJob
 import org.invendiv.data.initDatabase
 import org.invendiv.data.setupDatabase
+import org.invendiv.domain.repository.user.UserRepositoryImpl
+import org.invendiv.domain.useCase.user.AddUserUseCase
+import org.invendiv.domain.useCase.user.FetchUsersUseCase
+import org.invendiv.presentation.auth.AuthModule
+import org.invendiv.presentation.user.routes.userRoutes
+import presentation.auth.routes.authRoutes
 
 /**
  * Main function to start the embedded Ktor server on port 8080.
@@ -37,27 +39,21 @@ fun Application.module() {
     setupDatabase()
 
     install(ContentNegotiation) { json() }
-
-
-    // Initialize the UserCountJob
-    val userCountJob = UserCountJob(userRepository)
-    userCountJob.start()
-
-    // Register shutdown hook to stop the job when the application stops
-    environment.monitor.subscribe(ApplicationStopped) { userCountJob.stop() }
-
-    // Enable CORS to allow requests from other origins
     install(CORS) {
-        anyHost() // Allows requests from any host; adjust as needed for production
+        anyHost()
+        allowHeader(HttpHeaders.Authorization)
         allowHeader(HttpHeaders.ContentType)
-        allowHeader(HttpHeaders.Accept)
-        allowMethod(HttpMethod.Get)
-        allowMethod(HttpMethod.Post)
     }
 
 
+    AuthModule.configureAuthentication(this)
 
     routing {
+
+        authRoutes() // Access to /api/login
+
+        staticResources("/", "static")
+
         userRoutes(addUserUseCase, fetchUsersUseCase)
     }
 }

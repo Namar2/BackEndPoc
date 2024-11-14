@@ -24,7 +24,7 @@ object AuthModule {
      */
     fun configureAuthentication(application: Application) {
         application.install(Authentication) {
-            jwt("auth-jwt") {
+            jwt(jwtConfig) {
                 realm = jwtIssuer
 
                 verifier(

@@ -1,5 +1,7 @@
 package org.invendiv
 
+import LifecycleManager
+import UserCountJob
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
@@ -34,6 +36,10 @@ fun Application.module() {
     val userRepository = UserRepositoryImpl()
     val addUserUseCase = AddUserUseCase(userRepository)
     val fetchUsersUseCase = FetchUsersUseCase(userRepository)
+
+    val userCountJob = UserCountJob(userRepository)
+
+    val lifecycleManager = LifecycleManager(this, listOf(userCountJob))
 
     initDatabase()
     setupDatabase()

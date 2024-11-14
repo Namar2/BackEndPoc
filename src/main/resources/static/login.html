@@ -1,4 +1,3 @@
-<!-- login.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,74 +6,78 @@
   <title>Login</title>
   <style>
     body {
-        font-family: Arial, sans-serif;
-        background-color: #f0f2f5;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 100vh;
-        margin: 0;
+      font-family: Arial, sans-serif;
+      background-color: #eef2f5;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      color: #333;
     }
 
     .form-container {
-        background-color: #ffffff;
-        padding: 2rem;
-        border-radius: 8px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        max-width: 400px;
-        width: 100%;
-        text-align: center;
+      background-color: #fff;
+      padding: 2rem;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
     }
 
     h1 {
-        color: #333;
-        font-size: 1.5rem;
-        margin-bottom: 1rem;
+      font-size: 1.8rem;
+      margin-bottom: 1.5rem;
+      color: #333;
     }
 
     label {
-        font-weight: bold;
-        color: #555;
-        display: block;
-        margin-top: 1rem;
-        text-align: left;
+      display: block;
+      margin-top: 1rem;
+      font-weight: bold;
+      color: #555;
+      text-align: left;
     }
 
-    input[type="text"],
-    input[type="password"] {
-        width: 100%;
-        padding: 10px;
-        margin-top: 0.5rem;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-        font-size: 1rem;
+    input[type="text"], input[type="password"] {
+      width: 100%;
+      padding: 10px;
+      margin-top: 0.5rem;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 1rem;
     }
 
-    button[type="submit"] {
-        margin-top: 1.5rem;
-        background-color: #4CAF50;
-        color: #ffffff;
-        border: none;
-        padding: 10px;
-        font-size: 1rem;
-        border-radius: 4px;
-        cursor: pointer;
-        transition: background-color 0.3s;
+    button {
+      margin-top: 1.5rem;
+      background-color: #4a90e2;
+      color: #fff;
+      font-weight: bold;
+      padding: 10px;
+      border: none;
+      border-radius: 4px;
+      width: 100%;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: background-color 0.3s;
     }
 
-    button[type="submit"]:hover {
-        background-color: #45a049;
+    button:hover {
+      background-color: #357ab8;
     }
 
     #tokenDisplay {
-        margin-top: 1.5rem;
-        padding: 1rem;
-        background-color: #e9ecef;
-        border-radius: 4px;
-        word-break: break-all;
-        color: #333;
-        font-size: 0.9rem;
-        text-align: left;
+      margin-top: 1.5rem;
+      padding: 1rem;
+      background-color: #f7faff;
+      border-radius: 6px;
+      display: none;
+      text-align: left;
+      color: #333;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+      white-space: pre-wrap;
     }
   </style>
 </head>
@@ -91,51 +94,74 @@
     <button type="submit">Login</button>
   </form>
 
-  <!-- Section to display the token after login -->
-  <div id="tokenDisplay" style="display: none;">
+  <div id="tokenDisplay">
     <strong>Your Token:</strong>
     <p id="tokenText"></p>
+  </div>
+
+  <!-- New token validity check section -->
+  <div style="margin-top: 1.5rem;">
+    <h2>Check Token Validity</h2>
+    <input type="text" id="tokenInput" placeholder="Enter token to check" style="width: 100%; padding: 10px; margin-top: 0.5rem;">
+    <button id="checkTokenButton">Check Validity</button>
   </div>
 </div>
 
 <script>
   document.getElementById('loginForm').addEventListener('submit', async (event) => {
-      event.preventDefault();
+    event.preventDefault();
+    const username = document.getElementById('username').value;
+    const password = document.getElementById('password').value;
 
-      const username = document.getElementById('username').value;
-      const password = document.getElementById('password').value;
+    try {
+      const response = await fetch('http://localhost:2303/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
 
-      try {
-          const response = await fetch('http://localhost:2303/api/login', {
-              method: 'POST',
-              headers: {
-                  'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({ username, password })
-          });
+      if (response.ok) {
+        const data = await response.json();
+        const token = data.token;
 
-          if (response.ok) {
-              const responseData = await response.json();
-              const token = responseData.token;
+        localStorage.setItem('jwtToken', token);
+        document.getElementById('tokenText').textContent = token;
+        document.getElementById('tokenDisplay').style.display = 'block';
+        alert("Login successful!");
 
-              // Store the token in localStorage for future requests
-              localStorage.setItem('jwtToken', token);
-
-              // Display the token on the screen
-              document.getElementById('tokenText').textContent = token;
-              document.getElementById('tokenDisplay').style.display = 'block';
-
-              alert("Login successful!");
-              // Optional: Redirect to add user page after a delay
-              setTimeout(() => window.location.href = "/add_user.html", 5000);
-
-          } else {
-              alert("Login failed. Please check your credentials.");
-          }
-      } catch (error) {
-          console.error("Error logging in:", error);
-          alert("An error occurred. Please try again.");
+        setTimeout(() => window.location.href = "/add_user.html", 7000);
+      } else {
+        alert("Login failed. Please check your credentials.");
       }
+    } catch (error) {
+      console.error("Error logging in:", error);
+      alert("An error occurred. Please try again.");
+    }
+  });
+
+  // Check token validity on button click
+  document.getElementById('checkTokenButton').addEventListener('click', async () => {
+    const token = document.getElementById('tokenInput').value;
+    if (!token) {
+      alert("Please enter a token.");
+      return;
+    }
+
+    try {
+      const response = await fetch('http://localhost:2303/api/check-token', {
+        method: 'GET',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (response.ok) {
+        alert("Token is valid.");
+      } else {
+        alert("Token is invalid or expired.");
+      }
+    } catch (error) {
+      console.error("Error checking token validity:", error);
+      alert("An error occurred while checking the token.");
+    }
   });
 </script>
 </body>

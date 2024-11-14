@@ -17,6 +17,7 @@ repositories {
 dependencies {
     val exposedVersion = "0.56.0"
     val ktorVersion = "3.0.0"
+    val koinVersion = "4.0.0"
     testImplementation(kotlin("test"))
     // Logging dependency is required for server-side applications; omitting it may cause compilation issues
     implementation("ch.qos.logback:logback-classic:1.4.5")
@@ -32,6 +33,13 @@ dependencies {
     implementation("io.ktor:ktor-server-auth:$ktorVersion")
     implementation("io.ktor:ktor-server-swagger:$ktorVersion")
     implementation("com.auth0:java-jwt:3.18.2")
+
+    // Koin
+    implementation(project.dependencies.platform("io.insert-koin:koin-bom:$koinVersion"))
+    implementation("io.insert-koin:koin-core")
+
+    implementation("io.insert-koin:koin-ktor")
+    implementation("io.insert-koin:koin-logger-slf4j")
 
     // Exposed DB
     implementation("org.jetbrains.exposed:exposed-core:$exposedVersion")

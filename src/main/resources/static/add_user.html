@@ -7,16 +7,17 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #f0f2f5;
+            background-color: #eef2f5;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
             margin: 0;
+            color: #333;
         }
 
         .form-container {
-            background-color: #ffffff;
+            background-color: #fff;
             padding: 2rem;
             border-radius: 8px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -26,16 +27,16 @@
         }
 
         h1, h2 {
-            color: #333;
             font-size: 1.5rem;
+            color: #333;
             margin-bottom: 1rem;
         }
 
         label {
-            font-weight: bold;
-            color: #555;
             display: block;
             margin-top: 1rem;
+            font-weight: bold;
+            color: #555;
             text-align: left;
         }
 
@@ -51,27 +52,29 @@
 
         button {
             margin-top: 1.5rem;
-            background-color: #4CAF50;
-            color: #ffffff;
-            border: none;
+            background-color: #4a90e2;
+            color: #fff;
+            font-weight: bold;
             padding: 10px;
-            font-size: 1rem;
+            border: none;
             border-radius: 4px;
+            width: 100%;
             cursor: pointer;
+            font-size: 1rem;
             transition: background-color 0.3s;
         }
 
         button:hover {
-            background-color: #45a049;
+            background-color: #357ab8;
         }
 
         #logoutButton {
-            margin-top: 1rem;
             background-color: #f44336;
+            margin-top: 1rem;
         }
 
         #logoutButton:hover {
-            background-color: #e53935;
+            background-color: #d32f2f;
         }
 
         #userList {
@@ -109,6 +112,13 @@
         <h2>Existing Users</h2>
         <ul id="users"></ul>
     </div>
+
+    <!-- New token validity check section -->
+    <div style="margin-top: 1.5rem;">
+        <h2>Check Token Validity</h2>
+        <input type="text" id="tokenInput" placeholder="Enter token to check" style="width: 100%; padding: 10px; margin-top: 0.5rem;">
+        <button id="checkTokenButton">Check Validity</button>
+    </div>
 </div>
 
 <script>
@@ -119,7 +129,6 @@
         window.location.href = "/login.html";
     }
 
-    // Check if the token is valid on page load
     async function checkTokenValidity() {
         try {
             const response = await fetch('http://localhost:2303/api/check-token', {
@@ -137,7 +146,6 @@
         }
     }
 
-    // Fetch and display users
     async function fetchUsers() {
         try {
             const response = await fetch('http://localhost:2303/api/get-users', {
@@ -148,7 +156,7 @@
             if (response.ok) {
                 const users = await response.json();
                 const userList = document.getElementById('users');
-                userList.innerHTML = ''; // Clear existing list
+                userList.innerHTML = '';
 
                 users.forEach(user => {
                     const listItem = document.createElement('li');
@@ -163,7 +171,6 @@
         }
     }
 
-    // Add a new user
     document.getElementById('userForm').addEventListener('submit', async (event) => {
         event.preventDefault();
 
@@ -175,7 +182,7 @@
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`,
+                    'Authorization': `Bearer ${token}`
                 },
                 body: JSON.stringify({ name, email })
             });
@@ -183,7 +190,7 @@
             if (response.ok) {
                 const createdUser = await response.json();
                 alert(`User added successfully: ${createdUser.name}`);
-                fetchUsers(); // Refresh the user list
+                fetchUsers();
             } else if (response.status === 401) {
                 alert("Session expired. Redirecting to login.");
                 localStorage.removeItem('jwtToken');
@@ -197,7 +204,6 @@
         }
     });
 
-    // Logout function
     document.getElementById('logoutButton').addEventListener('click', async () => {
         try {
             await fetch('http://localhost:2303/api/logout', {
@@ -205,13 +211,37 @@
                 headers: { 'Authorization': `Bearer ${token}` }
             });
         } finally {
-            localStorage.removeItem('jwtToken'); // Clear the token from localStorage
+            localStorage.removeItem('jwtToken');
             alert("Logged out successfully.");
-            window.location.href = "/login.html"; // Redirect to login page
+            window.location.href = "/login.html";
         }
     });
 
-    // Initialize page
+    // Check token validity on button click
+    document.getElementById('checkTokenButton').addEventListener('click', async () => {
+        const token = document.getElementById('tokenInput').value;
+        if (!token) {
+            alert("Please enter a token.");
+            return;
+        }
+
+        try {
+            const response = await fetch('http://localhost:2303/api/check-token', {
+                method: 'GET',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            if (response.ok) {
+                alert("Token is valid.");
+            } else {
+                alert("Token is invalid or expired.");
+            }
+        } catch (error) {
+            console.error("Error checking token validity:", error);
+            alert("An error occurred while checking the token.");
+        }
+    });
+
     checkTokenValidity();
     fetchUsers();
 </script>

@@ -1,9 +1,9 @@
 package org.invendiv.user.data
 
-import org.invendiv.data.tables.Users
+import core.data.tables.Users
 import org.invendiv.user.domain.model.NewUser
 import org.invendiv.user.domain.model.User
-import org.invendiv.user.repository.UserRepository
+import org.invendiv.user.domain.repository.UserRepository
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.selectAll

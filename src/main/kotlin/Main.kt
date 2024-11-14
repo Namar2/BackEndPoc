@@ -1,7 +1,11 @@
 package org.invendiv
 
 import LifecycleManager
-import UserCountJob
+import auth.data.AuthRepositoryImpl
+import auth.domain.useCase.CheckTokenValidityUseCase
+import auth.domain.useCase.LoginUseCase
+import auth.domain.useCase.LogoutUseCase
+import auth.presentation.routes.authRoutes
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
@@ -12,55 +16,60 @@ import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.plugins.cors.routing.*
 import io.ktor.server.plugins.swagger.*
 import io.ktor.server.routing.*
-import org.invendiv.data.initDatabase
+import org.invendiv.auth.presentation.AuthModule
 import org.invendiv.data.setupDatabase
-import org.invendiv.domain.repository.user.UserRepositoryImpl
-import org.invendiv.domain.useCase.user.AddUserUseCase
-import org.invendiv.domain.useCase.user.FetchUsersUseCase
-import org.invendiv.presentation.auth.AuthModule
 import org.invendiv.presentation.user.routes.userRoutes
-import presentation.auth.routes.authRoutes
+import org.invendiv.user.data.UserRepositoryImpl
+import org.invendiv.user.jobs.UserCountJob
+import org.invendiv.user.useCase.AddUserUseCase
+import org.invendiv.user.useCase.FetchUsersUseCase
 
-/**
- * Main function to start the embedded Ktor server on port 8080.
- * - Uses Netty as the server engine.
- * - Calls the module function to configure the application with routing and database setup.
- */
 fun main() {
     embeddedServer(factory = Netty, port = 2303, module = Application::module).start(wait = true)
 }
 
-/**
- * Application module function to set up the database, install plugins, and define routes.
- */
 fun Application.module() {
+
     val userRepository = UserRepositoryImpl()
     val addUserUseCase = AddUserUseCase(userRepository)
     val fetchUsersUseCase = FetchUsersUseCase(userRepository)
 
-    val userCountJob = UserCountJob(userRepository)
 
+    val authRepository = AuthRepositoryImpl()
+    val loginUseCase = LoginUseCase(authRepository)
+    val logoutUseCase = LogoutUseCase(authRepository)
+    val checkTokenValidityUseCase = CheckTokenValidityUseCase(authRepository)
+
+
+    val userCountJob = UserCountJob(userRepository)
     val lifecycleManager = LifecycleManager(this, listOf(userCountJob))
 
-    initDatabase()
+    AuthModule.configureAuthentication(this)
+
     setupDatabase()
 
+    // Install Plugins
     install(ContentNegotiation) { json() }
     install(CORS) {
         anyHost()
         allowHeader(HttpHeaders.ContentType)
+        allowHeader(HttpHeaders.Authorization)
     }
 
 
-    AuthModule.configureAuthentication(this)
-
     routing {
-
         staticResources("/", "static")
         swaggerUI(path = "swagger", swaggerFile = "openapi/documentation.yaml")
 
-        authRoutes()
+        authRoutes(
+            loginUseCase = loginUseCase,
+            logoutUseCase = logoutUseCase,
+            checkTokenValidityUseCase = checkTokenValidityUseCase
+        )
 
-        userRoutes(addUserUseCase, fetchUsersUseCase)
+        userRoutes(
+            addUserUseCase = addUserUseCase,
+            fetchUsersUseCase = fetchUsersUseCase
+        )
     }
 }

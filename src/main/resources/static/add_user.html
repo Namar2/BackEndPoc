@@ -5,10 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Add User</title>
     <style>
-        /* Global Styles */
         body {
             font-family: Arial, sans-serif;
-            background-color: #f4f7f9;
+            background-color: #f0f2f5;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -16,120 +15,209 @@
             margin: 0;
         }
 
-        /* Container for the Form */
         .form-container {
             background-color: #ffffff;
             padding: 2rem;
             border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-            width: 100%;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             max-width: 400px;
+            width: 100%;
             text-align: center;
         }
 
-        /* Header */
-        h1 {
+        h1, h2 {
             color: #333;
             font-size: 1.5rem;
             margin-bottom: 1rem;
         }
 
-        /* Input Fields */
         label {
             font-weight: bold;
             color: #555;
             display: block;
-            margin-bottom: 0.5rem;
+            margin-top: 1rem;
+            text-align: left;
         }
 
         input[type="text"],
         input[type="email"] {
-            width: calc(100% - 20px);
+            width: 100%;
             padding: 10px;
-            margin-bottom: 1rem;
+            margin-top: 0.5rem;
             border: 1px solid #ddd;
             border-radius: 4px;
             font-size: 1rem;
-            color: #333;
         }
 
-        /* Button */
-        button[type="submit"] {
+        button {
+            margin-top: 1.5rem;
             background-color: #4CAF50;
             color: #ffffff;
             border: none;
-            padding: 0.75rem 1.5rem;
+            padding: 10px;
             font-size: 1rem;
             border-radius: 4px;
             cursor: pointer;
-            transition: background-color 0.3s ease;
+            transition: background-color 0.3s;
         }
 
-        button[type="submit"]:hover {
+        button:hover {
             background-color: #45a049;
         }
 
-        /* Responsive Design */
-        @media (max-width: 400px) {
-            .form-container {
-                padding: 1.5rem;
-                width: 90%;
-            }
+        #logoutButton {
+            margin-top: 1rem;
+            background-color: #f44336;
+        }
+
+        #logoutButton:hover {
+            background-color: #e53935;
+        }
+
+        #userList {
+            margin-top: 2rem;
+            text-align: left;
+        }
+
+        #userList ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        #userList li {
+            padding: 0.5rem;
+            border-bottom: 1px solid #ddd;
         }
     </style>
 </head>
 <body>
-
 <div class="form-container">
     <h1>Add a New User</h1>
     <form id="userForm">
-        <label for="name">Name:</label>
-        <input type="text" id="name" name="name" required placeholder="Enter name">
+        <label for="name">Name</label>
+        <input type="text" id="name" required placeholder="Enter name">
 
-        <label for="email">Email:</label>
-        <input type="email" id="email" name="email" required placeholder="Enter email">
+        <label for="email">Email</label>
+        <input type="email" id="email" required placeholder="Enter email">
 
         <button type="submit">Add User</button>
     </form>
+
+    <button id="logoutButton">Logout</button>
+
+    <div id="userList">
+        <h2>Existing Users</h2>
+        <ul id="users"></ul>
+    </div>
 </div>
 
 <script>
-    document.getElementById('userForm').addEventListener('submit', async (event) => {
-        event.preventDefault(); // Prevent default form submission
+    const token = localStorage.getItem('jwtToken');
 
-        // Collect form values
+    if (!token) {
+        alert("You are not logged in. Redirecting to login page.");
+        window.location.href = "/login.html";
+    }
+
+    // Function to check if the token is still valid
+    async function checkTokenValidity() {
+        try {
+            const response = await fetch('http://localhost:2303/api/check-token', {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (!response.ok) {
+                alert("Session expired. Redirecting to login.");
+                localStorage.removeItem('jwtToken');
+                window.location.href = "/login.html";
+            }
+        } catch (error) {
+            console.error("Error checking token validity:", error);
+        }
+    }
+
+    // Fetch users and check token validity on page load
+    checkTokenValidity();
+    fetchUsers();
+
+    async function fetchUsers() {
+        try {
+            const response = await fetch('http://localhost:2303/api/get-users', {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (response.ok) {
+                const users = await response.json();
+                const userList = document.getElementById('users');
+                userList.innerHTML = ''; // Clear existing list
+
+                users.forEach(user => {
+                    const listItem = document.createElement('li');
+                    listItem.textContent = `${user.name} (${user.email})`;
+                    userList.appendChild(listItem);
+                });
+            } else {
+                alert("Failed to fetch users.");
+            }
+        } catch (error) {
+            console.error("Error fetching users:", error);
+        }
+    }
+
+    // Form submission to add a new user
+    document.getElementById('userForm').addEventListener('submit', async (event) => {
+        event.preventDefault();
+
         const name = document.getElementById('name').value;
         const email = document.getElementById('email').value;
 
-        // Log the collected values for debugging
-        console.log("Submitting user:", { name, email });
-
         try {
-            // Send a POST request to add the user
-            const response = await fetch('http://localhost:8080/api/add-user', {
+            const response = await fetch('http://localhost:2303/api/add-user', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Accept': 'application/json'
+                    'Authorization': `Bearer ${token}`,
                 },
                 body: JSON.stringify({ name, email })
             });
 
             if (response.ok) {
                 const createdUser = await response.json();
-                console.log("User added successfully:", createdUser); // Debugging output
-                window.location.href = "http://localhost:8080/api/get-users";
+                alert(`User added successfully: ${createdUser.name}`);
+                fetchUsers(); // Refresh the user list
+            } else if (response.status === 401) {
+                alert("Session expired. Redirecting to login.");
+                localStorage.removeItem('jwtToken');
+                window.location.href = "/login.html";
             } else {
-                const errorText = await response.text(); // Get response error message
-                console.error("Failed to add user:", errorText);
-                alert('Failed to add user');
+                alert("Failed to add user.");
             }
         } catch (error) {
-            console.error("Error occurred:", error);
-            alert('An error occurred while adding the user.');
+            console.error("Error adding user:", error);
+            alert("An error occurred while adding the user.");
+        }
+    });
+
+    document.getElementById('logoutButton').addEventListener('click', async () => {
+        try {
+            await fetch('http://localhost:2303/api/logout', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+        } finally {
+            localStorage.removeItem('jwtToken'); // Clear the token from localStorage
+            alert("Logged out successfully.");
+            window.location.href = "/login.html"; // Redirect to login page
         }
     });
 </script>
-
 </body>
 </html>

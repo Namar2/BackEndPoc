@@ -6,3 +6,4 @@ build/
 *.class
 .gradle/buildOutputCleanup/buildOutputCleanup.lock
 .gradle/8.8/executionHistory/executionHistory.lock
+.idea/uiDesigner.xml

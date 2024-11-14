@@ -1,6 +1,6 @@
-package jobs
+package org.invendiv.jobs.user
 
-import domain.repository.UserRepository
+import org.invendiv.domain.repository.user.UserRepository
 import kotlinx.coroutines.*
 import org.slf4j.LoggerFactory
 

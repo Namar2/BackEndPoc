@@ -1,9 +1,5 @@
 package org.invendiv
 
-import adapters.UserRepositoryImpl
-import adapters.userRoutes
-import application.useCase.AddUserUseCase
-import application.useCase.FetchUsersUseCase
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
@@ -13,11 +9,14 @@ import io.ktor.server.netty.*
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.plugins.cors.routing.*
 import io.ktor.server.routing.*
-import jobs.UserCountJob
-import kotlinx.coroutines.*
-import org.invendiv.frameworks.db.initDatabase
-import org.invendiv.frameworks.db.setupDatabase
-import org.slf4j.LoggerFactory
+import org.invendiv.data.initDatabase
+import org.invendiv.data.setupDatabase
+import org.invendiv.domain.repository.user.UserRepositoryImpl
+import org.invendiv.domain.useCase.user.AddUserUseCase
+import org.invendiv.domain.useCase.user.FetchUsersUseCase
+import org.invendiv.presentation.auth.AuthModule
+import org.invendiv.presentation.user.routes.userRoutes
+import presentation.auth.routes.authRoutes
 
 /**
  * Main function to start the embedded Ktor server on port 8080.
@@ -25,7 +24,7 @@ import org.slf4j.LoggerFactory
  * - Calls the module function to configure the application with routing and database setup.
  */
 fun main() {
-    embeddedServer(Netty, port = 8080, module = Application::module).start(wait = true)
+    embeddedServer(factory = Netty, port = 2303, module = Application::module).start(wait = true)
 }
 
 /**
@@ -40,31 +39,20 @@ fun Application.module() {
     setupDatabase()
 
     install(ContentNegotiation) { json() }
-
-
-    // Initialize the UserCountJob
-    val userCountJob = UserCountJob(userRepository)
-    userCountJob.start()
-
-    // Register shutdown hook to stop the job when the application stops
-    environment.monitor.subscribe(ApplicationStopped) { userCountJob.stop() }
-
-    // Enable CORS to allow requests from other origins
     install(CORS) {
-        anyHost() // Allows requests from any host; adjust as needed for production
+        anyHost()
+        allowHeader(HttpHeaders.Authorization)
         allowHeader(HttpHeaders.ContentType)
-        allowHeader(HttpHeaders.Accept)
-        allowMethod(HttpMethod.Get)
-        allowMethod(HttpMethod.Post)
     }
 
 
-
+    AuthModule.configureAuthentication(this)
 
     routing {
-        static("/static") {
-            resources("static")
-        }
+
+        authRoutes() // Access to /api/login
+
+        staticResources("/", "static")
 
         userRoutes(addUserUseCase, fetchUsersUseCase)
     }

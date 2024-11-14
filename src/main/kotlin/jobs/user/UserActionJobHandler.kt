@@ -1,4 +1,4 @@
-package jobs
+package org.invendiv.jobs.user
 
 import kotlinx.coroutines.*
 import org.slf4j.LoggerFactory

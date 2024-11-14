@@ -10,6 +10,7 @@ import io.ktor.server.http.content.*
 import io.ktor.server.netty.*
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.plugins.cors.routing.*
+import io.ktor.server.plugins.swagger.*
 import io.ktor.server.routing.*
 import org.invendiv.data.initDatabase
 import org.invendiv.data.setupDatabase
@@ -47,7 +48,6 @@ fun Application.module() {
     install(ContentNegotiation) { json() }
     install(CORS) {
         anyHost()
-        allowHeader(HttpHeaders.Authorization)
         allowHeader(HttpHeaders.ContentType)
     }
 
@@ -56,9 +56,10 @@ fun Application.module() {
 
     routing {
 
-        authRoutes() // Access to /api/login
-
         staticResources("/", "static")
+        swaggerUI(path = "swagger", swaggerFile = "openapi/documentation.yaml")
+
+        authRoutes()
 
         userRoutes(addUserUseCase, fetchUsersUseCase)
     }

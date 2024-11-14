@@ -6,6 +6,7 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import org.invendiv.presentation.auth.AuthModule
+import org.invendiv.utils.extensions.decodeToken
 import presentation.auth.model.LoginRequest
 import utils.extensions.addToBlacklist
 import utils.extensions.isBlacklisted
@@ -13,7 +14,7 @@ import utils.extensions.isBlacklisted
 fun Route.authRoutes() {
 
     get("/api/check-token") {
-        val token = call.request.headers["Authorization"]?.removePrefix("Bearer ")?.let { JWT.decode(it).id }
+        val token = call.request.headers["Authorization"]?.decodeToken()
 
         if (token == null) {
             call.respond(HttpStatusCode.Unauthorized, "Token not provided")
@@ -39,9 +40,7 @@ fun Route.authRoutes() {
     }
 
     post("/api/logout") {
-        val jwtToken = call.request.headers["Authorization"]
-            ?.removePrefix("Bearer ")
-            ?.let { JWT.decode(it).id }
+        val jwtToken = call.request.headers["Authorization"]?.decodeToken()
 
         jwtToken?.addToBlacklist()
         call.respond(HttpStatusCode.OK, "Logged out successfully.")

@@ -1,6 +1,6 @@
 package utils
 
-object TokenBlacklist {
+object TokenBlackListUtils {
     private val blacklist = mutableSetOf<String>()
 
     // Adds jwtId to the blacklist

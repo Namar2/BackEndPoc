@@ -1,14 +1,14 @@
 package utils.extensions
 
 import com.auth0.jwt.JWT
-import utils.TokenBlacklist
+import utils.TokenBlackListUtils
 
 fun String.addToBlacklist() {
-    TokenBlacklist.addToken(this)
+    TokenBlackListUtils.addToken(this)
 }
 
 fun String.isBlacklisted(): Boolean {
-    return TokenBlacklist.isTokenBlacklisted(this)
+    return TokenBlackListUtils.isTokenBlacklisted(this)
 }
 fun String.getExpirationTime(): Long? {
     return try {

@@ -1,6 +1,5 @@
 package presentation.auth.routes
 
-import com.auth0.jwt.JWT
 import io.ktor.http.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*

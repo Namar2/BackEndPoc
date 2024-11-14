@@ -13,7 +13,7 @@ import utils.extensions.isBlacklisted
 fun Route.authRoutes() {
 
     get("/api/check-token") {
-        val token = call.request.headers["Authorization"]?.removePrefix("Bearer ")
+        val token = call.request.headers["Authorization"]?.removePrefix("Bearer ")?.let { JWT.decode(it).id }
 
         if (token == null) {
             call.respond(HttpStatusCode.Unauthorized, "Token not provided")
@@ -39,11 +39,11 @@ fun Route.authRoutes() {
     }
 
     post("/api/logout") {
-        val jwtId = call.request.headers["Authorization"]
+        val jwtToken = call.request.headers["Authorization"]
             ?.removePrefix("Bearer ")
             ?.let { JWT.decode(it).id }
 
-        jwtId?.addToBlacklist()
+        jwtToken?.addToBlacklist()
         call.respond(HttpStatusCode.OK, "Logged out successfully.")
     }
 }

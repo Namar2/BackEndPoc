@@ -115,8 +115,8 @@
           });
 
           if (response.ok) {
-              const data = await response.json();
-              const token = data.token;
+              const responseData = await response.json();
+              const token = responseData.token;
 
               // Store the token in localStorage for future requests
               localStorage.setItem('jwtToken', token);

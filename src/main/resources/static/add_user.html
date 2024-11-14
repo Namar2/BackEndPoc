@@ -119,37 +119,30 @@
         window.location.href = "/login.html";
     }
 
-    // Function to check if the token is still valid
+    // Check if the token is valid on page load
     async function checkTokenValidity() {
         try {
             const response = await fetch('http://localhost:2303/api/check-token', {
                 method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
+                headers: { 'Authorization': `Bearer ${token}` }
             });
 
             if (!response.ok) {
-                alert("Session expired. Redirecting to login.");
-                localStorage.removeItem('jwtToken');
-                window.location.href = "/login.html";
+                throw new Error("Session expired or invalid token");
             }
         } catch (error) {
-            console.error("Error checking token validity:", error);
+            alert(error.message + ". Redirecting to login.");
+            localStorage.removeItem('jwtToken');
+            window.location.href = "/login.html";
         }
     }
 
-    // Fetch users and check token validity on page load
-    checkTokenValidity();
-    fetchUsers();
-
+    // Fetch and display users
     async function fetchUsers() {
         try {
             const response = await fetch('http://localhost:2303/api/get-users', {
                 method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
+                headers: { 'Authorization': `Bearer ${token}` }
             });
 
             if (response.ok) {
@@ -170,7 +163,7 @@
         }
     }
 
-    // Form submission to add a new user
+    // Add a new user
     document.getElementById('userForm').addEventListener('submit', async (event) => {
         event.preventDefault();
 
@@ -204,13 +197,12 @@
         }
     });
 
+    // Logout function
     document.getElementById('logoutButton').addEventListener('click', async () => {
         try {
             await fetch('http://localhost:2303/api/logout', {
                 method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
+                headers: { 'Authorization': `Bearer ${token}` }
             });
         } finally {
             localStorage.removeItem('jwtToken'); // Clear the token from localStorage
@@ -218,6 +210,10 @@
             window.location.href = "/login.html"; // Redirect to login page
         }
     });
+
+    // Initialize page
+    checkTokenValidity();
+    fetchUsers();
 </script>
 </body>
 </html>

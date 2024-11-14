@@ -1,16 +1,15 @@
 package auth.data
 
+import auth.domain.JwtProvider
 import auth.domain.repository.AuthRepository
-import org.invendiv.auth.presentation.AuthModule
 import utils.extensions.addToBlacklist
 import utils.extensions.isBlacklisted
 
-class AuthRepositoryImpl : AuthRepository {
+class AuthRepositoryImpl(private val jwtProvider: JwtProvider) : AuthRepository {
 
     override suspend fun login(username: String, password: String): String? {
-
         return if (username == "invendiv" && password == "invendiv") {
-            AuthModule.generateToken(username)
+            jwtProvider.generateToken(username)
         } else {
             null
         }

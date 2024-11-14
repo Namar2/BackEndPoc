@@ -1,14 +1,13 @@
 package org.invendiv
 
-import LifecycleManager
-import auth.data.AuthRepositoryImpl
-import auth.domain.useCase.CheckTokenValidityUseCase
-import auth.domain.useCase.LoginUseCase
-import auth.domain.useCase.LogoutUseCase
+import auth.di.authModule
+import auth.domain.JwtProvider
 import auth.presentation.routes.authRoutes
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
+import io.ktor.server.auth.*
+import io.ktor.server.auth.jwt.*
 import io.ktor.server.engine.*
 import io.ktor.server.http.content.*
 import io.ktor.server.netty.*
@@ -16,39 +15,45 @@ import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.plugins.cors.routing.*
 import io.ktor.server.plugins.swagger.*
 import io.ktor.server.routing.*
-import org.invendiv.auth.presentation.AuthModule
-import org.invendiv.data.setupDatabase
-import org.invendiv.presentation.user.routes.userRoutes
-import org.invendiv.user.data.UserRepositoryImpl
+import core.data.setupDatabase
+import core.jobs.LifecycleManager
 import org.invendiv.user.jobs.UserCountJob
-import org.invendiv.user.useCase.AddUserUseCase
-import org.invendiv.user.useCase.FetchUsersUseCase
+import org.invendiv.user.presentation.routes.userRoutes
+import org.koin.core.context.startKoin
+import org.koin.java.KoinJavaComponent.inject
+import user.di.userModule
 
+// main
 fun main() {
     embeddedServer(factory = Netty, port = 2303, module = Application::module).start(wait = true)
 }
 
+
+// Application extension function
 fun Application.module() {
+    val jwtProvider by inject<JwtProvider>(JwtProvider::class.java)
+    val userCountJob: UserCountJob by inject(UserCountJob::class.java)
 
-    val userRepository = UserRepositoryImpl()
-    val addUserUseCase = AddUserUseCase(userRepository)
-    val fetchUsersUseCase = FetchUsersUseCase(userRepository)
+    // DI
+    startKoin {
+        modules(authModule, userModule)
+    }
+
+    // JWT
+    install(Authentication) {
+        jwt("auth-jwt") {
+            realm = jwtProvider.jwtIssuer
+            verifier(jwtProvider.configureVerifier())
+            validate { credential ->
+                if (credential.payload.getClaim("username").asString().isNotEmpty()) {
+                    JWTPrincipal(credential.payload)
+                } else null
+            }
+        }
+    }
 
 
-    val authRepository = AuthRepositoryImpl()
-    val loginUseCase = LoginUseCase(authRepository)
-    val logoutUseCase = LogoutUseCase(authRepository)
-    val checkTokenValidityUseCase = CheckTokenValidityUseCase(authRepository)
-
-
-    val userCountJob = UserCountJob(userRepository)
-    val lifecycleManager = LifecycleManager(this, listOf(userCountJob))
-
-    AuthModule.configureAuthentication(this)
-
-    setupDatabase()
-
-    // Install Plugins
+    // Server side related installations
     install(ContentNegotiation) { json() }
     install(CORS) {
         anyHost()
@@ -56,20 +61,25 @@ fun Application.module() {
         allowHeader(HttpHeaders.Authorization)
     }
 
+    // Database
+    setupDatabase()
+
+    // Lifecycle manager + Independent job
+    val jobs = listOf(userCountJob)
+    LifecycleManager(this, jobs)
+
 
     routing {
+        // Static
         staticResources("/", "static")
+
+        // Swagger
         swaggerUI(path = "swagger", swaggerFile = "openapi/documentation.yaml")
 
-        authRoutes(
-            loginUseCase = loginUseCase,
-            logoutUseCase = logoutUseCase,
-            checkTokenValidityUseCase = checkTokenValidityUseCase
-        )
+        // Authentication related
+        authRoutes()
 
-        userRoutes(
-            addUserUseCase = addUserUseCase,
-            fetchUsersUseCase = fetchUsersUseCase
-        )
+        // User related
+        userRoutes()
     }
 }

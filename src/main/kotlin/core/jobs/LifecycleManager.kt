@@ -1,5 +1,6 @@
+package core.jobs
+
 import io.ktor.server.application.*
-import core.jobs.LifecycleJob
 import org.slf4j.LoggerFactory
 
 class LifecycleManager(

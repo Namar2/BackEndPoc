@@ -1,0 +1,89 @@
+openapi: 3.0.1
+info:
+  title: User Management API
+  description: API for managing users and authentication
+  version: 1.0.0
+paths:
+  /:
+    get:
+      summary: Root endpoint
+      description: Displays README content.
+      responses:
+        "200":
+          description: README content
+          content:
+            text/html:
+              schema:
+                type: string
+        "404":
+          description: README file not found
+  /api/add-user:
+    post:
+      summary: Add a new user
+      description: Adds a user to the system and logs the action.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewUser'
+      responses:
+        "201":
+          description: User created
+        "400":
+          description: Bad request
+  /api/get-users:
+    get:
+      summary: Fetch users
+      description: Fetches all users from the system.
+      responses:
+        "200":
+          description: List of users
+  /api/check-token:
+    get:
+      summary: Check token validity
+      description: Validates the provided token.
+      responses:
+        "200":
+          description: Token is valid
+        "401":
+          description: Token is invalid or not provided
+  /api/login:
+    post:
+      summary: Login
+      description: Authenticates a user and returns a token.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        "200":
+          description: Authentication successful
+        "401":
+          description: Invalid credentials
+  /api/logout:
+    post:
+      summary: Logout
+      description: Logs out the user by blacklisting the token.
+      responses:
+        "200":
+          description: Logout successful
+
+components:
+  schemas:
+    NewUser:
+      type: object
+      properties:
+        username:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+    LoginRequest:
+      type: object
+      properties:
+        username:
+          type: string
+        password:
+          type: string

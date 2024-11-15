@@ -2,6 +2,7 @@ package org.invendiv
 
 import auth.di.authModule
 import auth.domain.JwtProvider
+import auth.domain.JwtProvider.Companion.authJWT
 import auth.presentation.routes.authRoutes
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
@@ -20,6 +21,7 @@ import core.jobs.LifecycleManager
 import org.invendiv.user.jobs.UserCountJob
 import org.invendiv.user.presentation.routes.userRoutes
 import org.koin.core.context.startKoin
+import org.koin.java.KoinJavaComponent.get
 import org.koin.java.KoinJavaComponent.inject
 import user.di.userModule
 
@@ -41,7 +43,7 @@ fun Application.module() {
 
     // JWT
     install(Authentication) {
-        jwt("auth-jwt") {
+        jwt(authJWT) {
             realm = jwtProvider.jwtIssuer
             verifier(jwtProvider.configureVerifier())
             validate { credential ->

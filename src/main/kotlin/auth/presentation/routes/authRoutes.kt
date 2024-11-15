@@ -17,10 +17,10 @@ fun Route.authRoutes() {
     val checkTokenValidityUseCase: CheckTokenValidityUseCase by inject(CheckTokenValidityUseCase::class.java)
 
     post("/api/login") {
-        val loginRequest = call.receive<LoginRequest>()
+        val loginRequest = call.receive<LoginRequest>() // {"username": "invendiv", "password": "invendiv"}
         val token = loginUseCase.execute(loginRequest)
         if (token != null) {
-            call.respond(HttpStatusCode.OK, mapOf("token" to token))
+            call.respond(HttpStatusCode.OK, mapOf("token" to token)) // {"token" : "$token"}
         } else {
             call.respond(HttpStatusCode.Unauthorized, "Invalid credentials")
         }

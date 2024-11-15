@@ -3,7 +3,6 @@ package auth.domain
 import com.auth0.jwt.JWT
 import com.auth0.jwt.JWTVerifier
 import com.auth0.jwt.algorithms.Algorithm
-import io.ktor.server.auth.jwt.*
 import java.util.*
 
 class JwtProvider {
@@ -11,6 +10,10 @@ class JwtProvider {
     val jwtIssuer = "ktor.io"
     private val jwtAudience = "ktorAudience"
     private val expirationTimeInMillis = 3_600_000 // 1 hour
+
+    companion object {
+        const val authJWT = "auth-jwt"
+    }
 
     fun generateToken(username: String): String {
         return JWT.create()

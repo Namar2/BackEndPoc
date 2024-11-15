@@ -1,7 +1,6 @@
 package org.invendiv.user.presentation.routes
 
-import com.vladsch.flexmark.html.HtmlRenderer
-import com.vladsch.flexmark.parser.Parser
+import auth.domain.JwtProvider.Companion.authJWT
 import io.ktor.http.*
 import io.ktor.server.auth.*
 import io.ktor.server.request.*
@@ -11,18 +10,19 @@ import org.invendiv.user.domain.model.NewUser
 import org.invendiv.user.domain.useCase.AddUserUseCase
 import org.invendiv.user.domain.useCase.FetchUsersUseCase
 import org.invendiv.user.jobs.UserActionJobHandler
+import org.invendiv.utils.extensions.generateHtml
 import org.koin.java.KoinJavaComponent.inject
 import java.io.File
 
 fun Route.userRoutes() {
-
+    // Injected
     val addUserUseCase: AddUserUseCase by inject(AddUserUseCase::class.java)
     val fetchUsersUseCase: FetchUsersUseCase by inject(FetchUsersUseCase::class.java)
-    val userActionJobHandler = UserActionJobHandler()
+    val userActionJobHandler: UserActionJobHandler by inject(UserActionJobHandler::class.java)
 
-    // Publicly accessible root route to display README.md content
     get("/") {
-        val readmeFile = File("README.md")
+        // Simpler approach
+        /*val readmeFile = File("README.md")
         if (readmeFile.exists()) {
             val markdown = readmeFile.readText()
             val parser = Parser.builder().build()
@@ -32,11 +32,19 @@ fun Route.userRoutes() {
             call.respondText(html, ContentType.Text.Html)
         } else {
             call.respondText("README.md file not found", ContentType.Text.Plain, HttpStatusCode.NotFound)
+        }*/
+
+//        val result = File("README.md").generateHtml
+        val result = generateHtml(File("README.md"))
+        if (result.isSuccess) {
+            call.respondText(result.getOrNull() ?: "Error generating HTML", ContentType.Text.Html)
+        } else {
+            call.respondText(result.exceptionOrNull()?.message ?: "Error processing file", ContentType.Text.Plain, HttpStatusCode.NotFound)
         }
     }
 
     // Protected routes that require authentication
-    authenticate("auth-jwt") {
+    authenticate(authJWT) {
         post("/api/add-user") {
             val newUser = call.receive<NewUser>()
             val createdUser = addUserUseCase.execute(newUser)
@@ -46,7 +54,6 @@ fun Route.userRoutes() {
                 call.respond(HttpStatusCode.Created, it)
                 return@post
             }
-
             call.respond(HttpStatusCode.BadRequest, "Bad request 400")
         }
 

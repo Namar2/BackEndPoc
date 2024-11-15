@@ -18,13 +18,15 @@ fun setupDatabase() {
     initDatabase()
     transaction {
         SchemaUtils.create(Users)
-
         /*
-        // Uncomment this block to insert sample core.data into the Users table
-        Users.insert {
-            it[name] = "Netanel Amar"      // Example name for sample core.data
-            it[email] = "NetanelCA2@gmail.com" // Example email for sample core.data
-        }
+        * Equal to:
+
+          CREATE TABLE IF NOT EXISTS Users (
+              id INT PRIMARY KEY AUTO_INCREMENT,
+                name VARCHAR(50),
+                email VARCHAR(100)
+            );
+
         */
     }
 }

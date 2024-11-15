@@ -11,15 +11,35 @@ import org.jetbrains.exposed.sql.transactions.transaction
 
 class UserRepositoryImpl : UserRepository {
 
+
     override suspend fun addUser(user: NewUser): User? {
-        var userId: Int? = null
-        transaction {
-            userId = Users.insert {
-                it[name] = user.name
-                it[email] = user.email
-            } get Users.id
+        // Validate user input
+        if (user.name.isBlank()) {
+            throw IllegalArgumentException("Name cannot be empty")
         }
-        return userId?.let { User(id = it, name = user.name, email = user.email) }
+        if (!user.email.contains("@")) {
+            throw IllegalArgumentException("Invalid email format")
+        }
+
+        return try {
+            // Insert the new user and retrieve the generated ID
+            var userId: Int? = null
+            transaction {
+                // Insert into the Users table and retrieve the generated ID using get()
+                userId = Users
+                    .insert {
+                        it[name] = user.name
+                        it[email] = user.email
+                    }[Users.id]  // Get the generated ID after insertion
+            }
+
+            // Return the User object after insertion
+            userId?.let { User(id = it, name = user.name, email = user.email) }
+        } catch (e: Exception) {
+            // Handle any exceptions during the insert
+            println("Error inserting user: ${e.message}")
+            null
+        }
     }
 
     override suspend fun fetchAllUsers(): List<User> = transaction {

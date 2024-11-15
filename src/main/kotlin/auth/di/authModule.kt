@@ -11,7 +11,7 @@ import org.koin.dsl.module
 val authModule = module {
     single { JwtProvider() }
     single<AuthRepository> { AuthRepositoryImpl(get()) }
-    single { LoginUseCase(get()) }
+    single { LoginUseCase() }
     single { LogoutUseCase(get()) }
     single { CheckTokenValidityUseCase(get()) }
 }

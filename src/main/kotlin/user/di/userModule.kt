@@ -5,11 +5,13 @@ import org.invendiv.user.jobs.UserCountJob
 import org.invendiv.user.domain.repository.UserRepository
 import org.invendiv.user.domain.useCase.AddUserUseCase
 import org.invendiv.user.domain.useCase.FetchUsersUseCase
+import org.invendiv.user.jobs.UserActionJobHandler
 import org.koin.dsl.module
 
 val userModule = module {
     single<UserRepository> { UserRepositoryImpl() }
     factory { AddUserUseCase(get()) }
-    factory { FetchUsersUseCase(get()) }
+    factory { FetchUsersUseCase() }
     single { UserCountJob(get()) }
+    single { UserActionJobHandler() }
 }

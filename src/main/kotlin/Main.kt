@@ -4,6 +4,8 @@ import auth.di.authModule
 import auth.domain.JwtProvider
 import auth.domain.JwtProvider.Companion.authJWT
 import auth.presentation.routes.authRoutes
+import core.di.appModule
+import core.jobs.LifecycleManager
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
@@ -16,12 +18,9 @@ import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.plugins.cors.routing.*
 import io.ktor.server.plugins.swagger.*
 import io.ktor.server.routing.*
-import core.data.setupDatabase
-import core.jobs.LifecycleManager
 import org.invendiv.user.jobs.UserCountJob
 import org.invendiv.user.presentation.routes.userRoutes
 import org.koin.core.context.startKoin
-import org.koin.java.KoinJavaComponent.get
 import org.koin.java.KoinJavaComponent.inject
 import user.di.userModule
 
@@ -38,7 +37,7 @@ fun Application.module() {
 
     // DI
     startKoin {
-        modules(authModule, userModule)
+        modules(appModule, authModule, userModule)
     }
 
     // JWT
@@ -62,9 +61,6 @@ fun Application.module() {
         allowHeader(HttpHeaders.ContentType)
         allowHeader(HttpHeaders.Authorization)
     }
-
-    // Database
-    setupDatabase()
 
     // Lifecycle manager + Independent job
     val jobs = listOf(userCountJob)

@@ -1,56 +1,56 @@
 package org.invendiv.user.data
 
-import core.data.tables.Users
-import org.invendiv.user.domain.model.NewUser
+import core.data.MongoClientProvider
+import org.bson.Document
+import org.bson.types.ObjectId
 import org.invendiv.user.domain.model.User
+
 import org.invendiv.user.domain.repository.UserRepository
-import org.jetbrains.exposed.sql.ResultRow
-import org.jetbrains.exposed.sql.insert
-import org.jetbrains.exposed.sql.selectAll
-import org.jetbrains.exposed.sql.transactions.transaction
+import org.koin.java.KoinJavaComponent.inject
 
 class UserRepositoryImpl : UserRepository {
 
+    private val mongoClientProvider: MongoClientProvider by inject(MongoClientProvider::class.java)
 
-    override suspend fun addUser(user: NewUser): User? {
-        // Validate user input
-        if (user.name.isBlank()) {
-            throw IllegalArgumentException("Name cannot be empty")
-        }
-        if (!user.email.contains("@")) {
-            throw IllegalArgumentException("Invalid email format")
+    private val collectionName = "users"
+
+
+    override suspend fun addUser(user: User): Boolean {
+
+        if (user.name.isBlank() || !user.email.contains("@")) {
+            throw IllegalArgumentException("Invalid user details")
         }
 
         return try {
-            // Insert the new user and retrieve the generated ID
-            var userId: Int? = null
-            transaction {
-                // Insert into the Users table and retrieve the generated ID using get()
-                userId = Users
-                    .insert {
-                        it[name] = user.name
-                        it[email] = user.email
-                    }[Users.id]  // Get the generated ID after insertion
-            }
+            val document = Document("name", user.name)
+                .append("email", user.email)
 
-            // Return the User object after insertion
-            userId?.let { User(id = it, name = user.name, email = user.email) }
+            val collection = mongoClientProvider.getCollection(collectionName = collectionName)
+
+            val result = collection.insertOne(document)
+
+            result.wasAcknowledged()
         } catch (e: Exception) {
-            // Handle any exceptions during the insert
             println("Error inserting user: ${e.message}")
-            null
+            false
         }
     }
 
-    override suspend fun fetchAllUsers(): List<User> = transaction {
-        Users.selectAll().map { toUser(it) }
-    }
 
-    private fun toUser(row: ResultRow): User {
-        return User(
-            id = row[Users.id],
-            name = row[Users.name],
-            email = row[Users.email]
-        )
+    override suspend fun fetchAllUsers(): List<User> {
+        return try {
+            val collection = mongoClientProvider.getCollection(collectionName = collectionName)
+
+            collection.find().map { doc ->
+                User(
+                    id = (doc["_id"] as? ObjectId)?.toHexString() ?: "",
+                    name = doc["name"] as? String ?: "Unknown",
+                    email = doc["email"] as? String ?: "Unknown"
+                )
+            }.toList()
+        } catch (e: Exception) {
+            println("Error fetching users: ${e.message}")
+            emptyList()
+        }
     }
 }

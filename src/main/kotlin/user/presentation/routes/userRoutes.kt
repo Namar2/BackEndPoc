@@ -9,6 +9,7 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import org.invendiv.user.domain.model.NewUser
+import org.invendiv.user.domain.model.User
 import org.invendiv.user.domain.useCase.AddUserUseCase
 import org.invendiv.user.domain.useCase.FetchUsersUseCase
 import org.invendiv.user.jobs.UserActionJobHandler
@@ -62,15 +63,15 @@ fun Route.userRoutes() {
     // Protected routes that require authentication
     authenticate(authJWT) {
         post("/api/add-user") {
-            val newUser = call.receive<NewUser>()
-            val createdUser = addUserUseCase.execute(newUser)
-            createdUser?.let {
-                // Action related job (dependant)
-                userActionJobHandler.startLogUserActionJob(it.id, "User added")
-                call.respond(HttpStatusCode.Created, it)
-                return@post
+            val newUser = call.receive<User>()
+            val isUserAdded = addUserUseCase.execute(newUser)
+
+            if (isUserAdded) {
+                userActionJobHandler.startLogUserActionJob(newUser.name, "User added")
+                call.respond(HttpStatusCode.Created, "User added successfully")
+            } else {
+                call.respond(HttpStatusCode.BadRequest, "Failed to add user")
             }
-            call.respond(HttpStatusCode.BadRequest, "Bad request 400")
         }
 
         get("/api/get-users") {

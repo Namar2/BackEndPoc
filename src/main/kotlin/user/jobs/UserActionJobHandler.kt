@@ -13,14 +13,14 @@ class UserActionJobHandler {
     private val anotherSupervisorJob = SupervisorJob()
     private val anotherCoroutineScope = CoroutineScope(Dispatchers.IO + anotherSupervisorJob)
 
-    fun startLogUserActionJob(userId: Int, action: String) {
+    fun startLogUserActionJob(userName: String, action: String) {
         // Launches a new coroutine to log the user action
         coroutineScope.launch {
             try {
                 delay(2_000) // Simulating work
-                logger.info("User action logged: User ID $userId performed action: $action")
+                logger.info("User action logged: User $userName performed action: $action")
             } catch (e: Exception) {
-                logger.error("Failed to log user action for User ID $userId", e)
+                logger.error("Failed to log user action for User $userName", e)
             }
         }
     }

@@ -15,24 +15,31 @@ repositories {
 
 
 dependencies {
-    val exposedVersion = "0.56.0"
     val ktorVersion = "3.0.0"
     val koinVersion = "4.0.0"
+    val mongoVersion = "5.2.0"
     testImplementation(kotlin("test"))
     // Logging dependency is required for server-side applications; omitting it may cause compilation issues
     implementation("ch.qos.logback:logback-classic:1.4.5")
-
     // Ktor
+    implementation("io.ktor:ktor-server-content-negotiation:$ktorVersion")
     implementation("io.ktor:ktor-server-core:$ktorVersion")
     implementation("io.ktor:ktor-server-netty:$ktorVersion")
-    implementation("io.ktor:ktor-server-content-negotiation:$ktorVersion")
-    implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
     implementation("io.ktor:ktor-server-resources:$ktorVersion")
     implementation("io.ktor:ktor-server-cors:$ktorVersion")
     implementation("io.ktor:ktor-server-auth-jwt:$ktorVersion")
     implementation("io.ktor:ktor-server-auth:$ktorVersion")
     implementation("io.ktor:ktor-server-swagger:$ktorVersion")
     implementation("com.auth0:java-jwt:3.18.2")
+
+    implementation("io.ktor:ktor-client-core:$ktorVersion")
+    implementation("io.ktor:ktor-client-cio:$ktorVersion")
+
+    // Serialization
+    implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
+
+    // Coroutines
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
 
     // Koin
     implementation(project.dependencies.platform("io.insert-koin:koin-bom:$koinVersion"))
@@ -41,6 +48,13 @@ dependencies {
     implementation("io.insert-koin:koin-ktor")
     implementation("io.insert-koin:koin-logger-slf4j")
 
+    // MongoDb
+    implementation("org.mongodb:mongodb-driver-sync:$mongoVersion")
+    implementation("org.mongodb:mongodb-driver-reactivestreams:$mongoVersion")
+    implementation("org.mongodb:mongodb-driver-kotlin-coroutine:$mongoVersion")
+
+
+  /*  val exposedVersion = "0.56.0"
     // Exposed DB
     implementation("org.jetbrains.exposed:exposed-core:$exposedVersion")
     implementation("org.jetbrains.exposed:exposed-crypt:$exposedVersion")
@@ -50,7 +64,7 @@ dependencies {
     implementation("org.jetbrains.exposed:exposed-json:$exposedVersion")
     implementation("org.jetbrains.exposed:exposed-money:$exposedVersion")
     implementation("org.jetbrains.exposed:exposed-spring-boot-starter:$exposedVersion")
-    implementation("com.h2database:h2:1.4.200")
+    implementation("com.h2database:h2:1.4.200")*/
 
 
     implementation("com.vladsch.flexmark:flexmark-all:0.64.0")
